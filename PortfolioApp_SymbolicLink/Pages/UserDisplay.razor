@@ -1,0 +1,43 @@
+﻿@page "/userdisplay"
+@inject UserService UserService
+
+<h2>User List</h2>
+
+@if (users is not null && users.Any())
+{
+    <ul class="user-list">
+        @foreach (var user in users)
+        {
+            <li>@user</li>
+        }
+    </ul>
+}
+else
+{
+    <p>No users available.</p>
+}
+
+<div class="user-form">
+    <input type="text" @bind="newUserName" placeholder="Enter username..." />
+    <button @onclick="AddUser">Add User</button>
+</div>
+
+@code {
+    private List<string> users = [];
+    private string newUserName = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        users = UserService.GetUsers().ToList();
+    }
+
+    private void AddUser()
+    {
+        if (!string.IsNullOrWhiteSpace(newUserName))
+        {
+            UserService.SetCurrentUser(newUserName);
+            users = UserService.GetUsers().ToList();
+            newUserName = string.Empty;
+        }
+    }
+}
