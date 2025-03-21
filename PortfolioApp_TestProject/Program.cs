@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PortfolioApp;
 using PortfolioApp.Data;
 using PortfolioApp.Lifecycle;
 
@@ -8,10 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();   // Required for _Host.cshtml
 builder.Services.AddServerSideBlazor();    // Enables Blazor Server
 
-//builder.Services.AddDbContext<AppDbContext>(options =>
-//{
-//    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-//});
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options
+        .UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+        .UseLazyLoadingProxies(); // Enable Lazy Loading in DI
+});
 
 // http client registering
 //builder.Services.AddHttpClient();
@@ -35,7 +38,7 @@ builder.Services.AddHttpClient("JsonPlaceholder", httpClient =>
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<CounterStateService>();
 builder.Services.AddSingleton<ModalStateService>();
-builder.Services.AddScoped<UserService>();
+builder.Services.AddTransient<UserService>();
 
 // Register services with different lifetimes
 builder.Services.AddTransient<ITransientService, TransientService>();
