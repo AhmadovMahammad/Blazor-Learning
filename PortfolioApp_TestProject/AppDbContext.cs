@@ -42,8 +42,20 @@ public class AppDbContext(DbContextOptions dbContextOptions) : DbContext(dbConte
         //    .UsingEntity(junction => junction.ToTable("UserRoles")); // EF Core will create "UserRoles" table automatically
 
         modelBuilder.Entity<Order>()
+            .Property(o => o.Name)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<Order>()
             .Property(o => o.Price)
             .HasPrecision(18, 4);
+
+        modelBuilder.Entity<UserProfile>()
+            .Property(u => u.Bio)
+            .IsRequired();
+
+        modelBuilder.Entity<UserRole>()
+            .Property(ur => ur.AssignedDate)
+            .HasDefaultValueSql("GETDATE()");
     }
 
     public DbSet<User> Users { get; set; }

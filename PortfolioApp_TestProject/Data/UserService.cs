@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using PortfolioApp.Entities;
 
 namespace PortfolioApp.Data;
@@ -77,14 +78,73 @@ namespace PortfolioApp.Data;
 public class UserService
 {
     private readonly AppDbContext _context;
+
     public UserService(AppDbContext context)
     {
         _context = context;
+        TestState();
     }
 
-    public IEnumerable<User> GetUsers()
+    private void TestState()
     {
-        IEnumerable<User> users = _context.Users.Include(u => u.Profile);
-        return users;
+        var user = _context.Users.FirstOrDefault(u => u.Id == 1);
+        if (user == null) return;
+
+        Console.WriteLine($"Before Change: {user.Name}, State: {_context.Entry(user).State}");
+
+        user.Name = "Updated Name";
+        Console.WriteLine($"After Change: {user.Name}, State: {_context.Entry(user).State}");
+
+        var newUser = new User { Name = "Ahmadov", Email = "dev.ahmadov.mahammad@gmail.com" };
+        _context.Users.Add(newUser);
+        Console.WriteLine($"New User: {newUser.Name}, State: {_context.Entry(newUser).State}");
+
+        foreach (var entry in _context.ChangeTracker.Entries<User>())
+        {
+            Console.WriteLine($"Entity: {entry.Entity.Name}, State: {entry.State}");
+        }
+
+        _context.SaveChanges();
+
+        foreach (var entry in _context.ChangeTracker.Entries<User>())
+        {
+            Console.WriteLine($"After Save - Entity: {entry.Entity.Name}, State: {entry.State}");
+        }
+    }
+
+    public async Task<List<User>> GetUsersAsync()
+    {
+        return await _context.Users
+            .Include(u => u.Profile)
+            .ToListAsync();
+    }
+
+    public async Task<User?> GetUserByIdAsync(int id)
+    {
+        return await _context.Users
+            .Include(u => u.Profile)
+            .FirstOrDefaultAsync(u => u.Id == id);
+    }
+
+    public async Task AddUserAsync(User user)
+    {
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateUserAsync(User user)
+    {
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteUserAsync(int id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user is not null)
+        {
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+        }
     }
 }
